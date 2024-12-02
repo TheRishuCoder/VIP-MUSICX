@@ -10,6 +10,7 @@
 import asyncio
 import random
 import string
+from time import time
 
 from pyrogram import filters
 from pyrogram.errors import FloodWait
@@ -22,7 +23,7 @@ from VIPMUSIC import Apple, Resso, SoundCloud, Spotify, Telegram, YouTube, app
 from VIPMUSIC.core.call import VIP
 from VIPMUSIC.utils import seconds_to_min, time_to_seconds
 from VIPMUSIC.utils.channelplay import get_channeplayCB
-from VIPMUSIC.utils.database import is_video_allowed
+from VIPMUSIC.utils.database import add_served_chat, get_assistant, is_video_allowed
 from VIPMUSIC.utils.decorators.language import languageCB
 from VIPMUSIC.utils.decorators.play import PlayWrapper
 from VIPMUSIC.utils.formatters import formats
@@ -36,6 +37,11 @@ from VIPMUSIC.utils.inline.playlist import botplaylist_markup
 from VIPMUSIC.utils.logger import play_logs
 from VIPMUSIC.utils.stream.stream import stream
 
+user_last_message_time = {}
+user_command_count = {}
+SPAM_WINDOW_SECONDS = 5  # Set the time window for spam checks (5 seconds for example)
+SPAM_THRESHOLD = 2
+
 
 @app.on_message(
     filters.command(
@@ -43,33 +49,48 @@ from VIPMUSIC.utils.stream.stream import stream
             "play",
             "vplay",
             "cplay",
-            "cute",
             "cvplay",
             "playforce",
             "vplayforce",
             "cplayforce",
             "cvplayforce",
         ],
-        prefixes=["/", "!", "%", ",", ".", "@", "#"],
+        prefixes=["/", "!", "%", ",", "@", "#"],
     )
     & filters.group
     & ~BANNED_USERS
 )
 @PlayWrapper
 async def play_commnd(
-    client,
-    message: Message,
-    _,
-    chat_id,
-    video,
-    channel,
-    playmode,
-    url,
-    fplay,
+    client, message: Message, _, chat_id, video, channel, playmode, url, fplay
 ):
+    userbot = await get_assistant(message.chat.id)
+    userbot_id = userbot.id
+    user_id = message.from_user.id
+    current_time = time()
+    last_message_time = user_last_message_time.get(user_id, 0)
+
+    # Spam check logic
+    if current_time - last_message_time < SPAM_WINDOW_SECONDS:
+        user_last_message_time[user_id] = current_time
+        user_command_count[user_id] = user_command_count.get(user_id, 0) + 1
+        if user_command_count[user_id] > SPAM_THRESHOLD:
+            hu = await message.reply_text(
+                f"**{message.from_user.mention} ᴘʟᴇᴀsᴇ ᴅᴏɴ'ᴛ sᴘᴀᴍ, ᴛʀʏ ᴀɢᴀɪɴ ᴀғᴛᴇʀ 5 sᴇᴄᴏɴᴅs.**"
+            )
+            await asyncio.sleep(3)
+            await hu.delete()
+            return
+    else:
+        user_command_count[user_id] = 1
+        user_last_message_time[user_id] = current_time
+
+    # Proceed with adding the chat and sending response
+    await add_served_chat(message.chat.id)
     mystic = await message.reply_text(
         _["play_2"].format(channel) if channel else _["play_1"]
     )
+
     plist_id = None
     slider = None
     plist_type = None
@@ -316,6 +337,10 @@ async def play_commnd(
                 return await mystic.edit_text(err)
             return await mystic.delete()
         else:
+            if not await is_streamable_url(url):
+                return await mystic.edit_text(
+                    "ᴏᴏᴘs ɪ ᴅᴏɴ'ᴛ Tʜɪɴᴋ ᴛʜᴀᴛ ɪᴛ ɪs ᴀ sᴛʀᴇᴀᴍᴀʙʟᴇ ᴜʀʟ"
+                )
             try:
                 await VIP.stream_call(url)
             except NoActiveGroupCall:

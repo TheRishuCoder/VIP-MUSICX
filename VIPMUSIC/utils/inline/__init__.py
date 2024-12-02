@@ -8,6 +8,7 @@
 # All rights reserved.
 #
 from .help import *
+from .musichelp import *
 from .play import *
 from .playlist import *
 from .queue import *

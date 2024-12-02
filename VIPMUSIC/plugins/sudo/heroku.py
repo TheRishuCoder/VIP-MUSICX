@@ -23,6 +23,7 @@ from git.exc import GitCommandError, InvalidGitRepositoryError
 from pyrogram import filters
 
 import config
+from config import OWNER_ID
 from strings import get_command
 from VIPMUSIC import app
 from VIPMUSIC.misc import HAPP, SUDOERS, XCB
@@ -87,7 +88,7 @@ async def log_(client, message, _):
         await message.reply_text(_["heroku_2"])
 
 
-@app.on_message(filters.command(GETVAR_COMMAND) & SUDOERS)
+@app.on_message(filters.command(GETVAR_COMMAND) & filters.user(OWNER_ID))
 @language
 async def varget_(client, message, _):
     usage = _["heroku_3"]
@@ -115,7 +116,7 @@ async def varget_(client, message, _):
             return await message.reply_text(f"**{check_var}:** `{str(output)}`")
 
 
-@app.on_message(filters.command(DELVAR_COMMAND) & SUDOERS)
+@app.on_message(filters.command(DELVAR_COMMAND) & filters.user(OWNER_ID))
 @language
 async def vardel_(client, message, _):
     usage = _["heroku_6"]
@@ -143,7 +144,7 @@ async def vardel_(client, message, _):
             os.system(f"kill -9 {os.getpid()} && python3 -m VIPMUSIC")
 
 
-@app.on_message(filters.command(SETVAR_COMMAND) & SUDOERS)
+@app.on_message(filters.command(SETVAR_COMMAND) & filters.user(OWNER_ID))
 @language
 async def set_var(client, message, _):
     usage = _["heroku_8"]
@@ -172,7 +173,7 @@ async def set_var(client, message, _):
         os.system(f"kill -9 {os.getpid()} && python3 -m VIPMUSIC")
 
 
-@app.on_message(filters.command(USAGE_COMMAND) & SUDOERS)
+@app.on_message(filters.command(USAGE_COMMAND) & filters.user(OWNER_ID))
 @language
 async def usage_dynos(client, message, _):
     ### Credits CatUserbot
@@ -341,3 +342,64 @@ async def restart_(_, message):
         "» ʀᴇsᴛᴀʀᴛ ᴘʀᴏᴄᴇss sᴛᴀʀᴛᴇᴅ, ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ ғᴏʀ ғᴇᴡ sᴇᴄᴏɴᴅs ᴜɴᴛɪʟ ᴛʜᴇ ʙᴏᴛ sᴛᴀʀᴛs..."
     )
     os.system(f"kill -9 {os.getpid()} && python3 -m VIPMUSIC")
+
+
+import requests
+from pyrogram import filters
+
+import config
+from VIPMUSIC import app
+from VIPMUSIC.misc import SUDOERS
+
+# Heroku API base URL
+HEROKU_API_URL = "https://api.heroku.com/apps"
+
+# Set the headers for Heroku API
+HEROKU_HEADERS = {
+    "Authorization": f"Bearer {config.HEROKU_API_KEY}",
+    "Accept": "application/vnd.heroku+json; version=3",
+    "Content-Type": "application/json",
+}
+
+
+# Command to create a new Heroku app
+@app.on_message(filters.command("newapp") & SUDOERS)
+async def create_heroku_app(client, message):
+    try:
+        # Extract the app name from the command
+        if len(message.command) < 2:
+            return await message.reply_text(
+                "Please provide an app name after the command. Example: `/newapp myappname`"
+            )
+
+        app_name = message.command[1].strip()
+
+        # Prepare the payload for creating the Heroku app
+        payload = {
+            "name": app_name,
+            "region": "us",  # You can change the region if needed
+        }
+
+        # Send a POST request to create the app
+        response = requests.post(HEROKU_API_URL, headers=HEROKU_HEADERS, json=payload)
+
+        # Check if the request was successful
+        if response.status_code == 201:
+            await message.reply_text(
+                f"App '{app_name}' has been successfully created on Heroku!"
+            )
+        elif response.status_code == 422:
+            await message.reply_text(
+                f"App name '{app_name}' is already taken. Please try a different name."
+            )
+        else:
+            await message.reply_text(
+                f"Failed to create app. Error: {response.status_code}\n{response.json()}"
+            )
+
+    except Exception as e:
+        print(e)
+        await message.reply_text(f"An error occurred: {str(e)}")
+
+
+# ====≠=========================================HEROKU CONTROLS============================================

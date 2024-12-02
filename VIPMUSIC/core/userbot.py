@@ -8,6 +8,10 @@
 # All rights reserved.
 #
 
+
+from typing import Callable, Optional
+
+import pyrogram
 from pyrogram import Client
 
 import config
@@ -16,6 +20,7 @@ from ..logging import LOGGER
 
 assistants = []
 assistantids = []
+clients = []
 
 
 class Userbot(Client):
@@ -26,24 +31,28 @@ class Userbot(Client):
             api_hash=config.API_HASH,
             session_string=str(config.STRING1),
         )
+
         self.two = Client(
             "VIPString2",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
             session_string=str(config.STRING2),
         )
+
         self.three = Client(
             "VIPString3",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
             session_string=str(config.STRING3),
         )
+
         self.four = Client(
             "VIPString4",
             api_id=config.API_ID,
             api_hash=config.API_HASH,
             session_string=str(config.STRING4),
         )
+
         self.five = Client(
             "VIPString5",
             api_id=config.API_ID,
@@ -56,13 +65,14 @@ class Userbot(Client):
         if config.STRING1:
             await self.one.start()
             try:
-                await self.one.join_chat("THE_VIP_BOY_OP")
-                await self.one.join_chat("THE_VIP_BOY")
-                await self.one.join_chat("TG_FRIENDSS")
-                await self.one.join_chat("VIP_CREATORS")
+                await self.one.join_chat("Vip_robotz")
+                await self.one.join_chat("Rishuxbot")
+                await self.one.join_chat("Ur_rishu_143")
+                await self.one.join_chat("NenoBots")
             except:
                 pass
             assistants.append(1)
+            clients.append(self.one)
             try:
                 await self.one.send_message(config.LOG_GROUP_ID, "Assistant Started")
             except:
@@ -83,13 +93,14 @@ class Userbot(Client):
         if config.STRING2:
             await self.two.start()
             try:
-                await self.two.join_chat("TheVIP")
-                await self.two.join_chat("VIPSupport")
-                await self.two.join_chat("THE-VIP-BOY-OP")
-                await self.two.join_chat("TheTeamVk")
+                await self.two.join_chat("NenoBots")
+                await self.two.join_chat("Rishuxbot")
+                await self.two.join_chat("Ur_rishu_143")
+                await self.two.join_chat("RishuTeam")
             except:
                 pass
             assistants.append(2)
+            clients.append(self.two)
             try:
                 await self.two.send_message(config.LOG_GROUP_ID, "Assistant Started")
             except:
@@ -110,13 +121,14 @@ class Userbot(Client):
         if config.STRING3:
             await self.three.start()
             try:
-                await self.three.join_chat("TheVIP")
-                await self.three.join_chat("VIPSupport")
-                await self.three.join_chat("THE-VIP-BOY-OP")
-                await self.three.join_chat("TheTeamVk")
+                await self.three.join_chat("RishuNetwork")
+                await self.three.join_chat("Vip_robotz")
+                await self.three.join_chat("NenoBots")
+                await self.three.join_chat("Rishuxbot")
             except:
                 pass
             assistants.append(3)
+            clients.append(self.three)
             try:
                 await self.three.send_message(config.LOG_GROUP_ID, "Assistant Started")
             except:
@@ -137,13 +149,14 @@ class Userbot(Client):
         if config.STRING4:
             await self.four.start()
             try:
-                await self.four.join_chat("TheVIP")
-                await self.four.join_chat("VIPSupport")
-                await self.four.join_chat("THE-VIP-BOY-OP")
-                await self.four.join_chat("TheTeamVk")
+                await self.four.join_chat("RishuNetwork")
+                await self.four.join_chat("RishuTeam")
+                await self.four.join_chat("ur_rishu_143")
+                await self.four.join_chat("ur_support07")
             except:
                 pass
             assistants.append(4)
+            clients.append(self.four)
             try:
                 await self.four.send_message(config.LOG_GROUP_ID, "Assistant Started")
             except:
@@ -164,13 +177,14 @@ class Userbot(Client):
         if config.STRING5:
             await self.five.start()
             try:
-                await self.five.join_chat("TheVIP")
-                await self.five.join_chat("VIPSupport")
-                await self.five.join_chat("THE-VIP-BOY-OP")
-                await self.five.join_chat("TheTeamVk")
+                await self.five.join_chat("NenoBots")
+                await self.five.join_chat("RishuNetwork")
+                await self.five.join_chat("Vip_robotz")
+                await self.five.join_chat("Rishuxbot")
             except:
                 pass
             assistants.append(5)
+            clients.append(self.five)
             try:
                 await self.five.send_message(config.LOG_GROUP_ID, "Assistant Started")
             except:
@@ -183,8 +197,14 @@ class Userbot(Client):
             self.five.id = get_me.id
             self.five.mention = get_me.mention
             assistantids.append(get_me.id)
-            if get_me.last_name:
-                self.five.name = get_me.first_name + " " + get_me.last_name
-            else:
-                self.five.name = get_me.first_name
-            LOGGER(__name__).info(f"Assistant Five Started as {self.five.name}")
+
+
+def on_cmd(
+    filters: Optional[pyrogram.filters.Filter] = None, group: int = 0
+) -> Callable:
+    def decorator(func: Callable) -> Callable:
+        for client in clients:
+            client.add_handler(pyrogram.handlers.MessageHandler(func, filters), group)
+        return func
+
+    return decorator

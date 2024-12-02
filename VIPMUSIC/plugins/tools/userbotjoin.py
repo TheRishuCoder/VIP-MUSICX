@@ -13,7 +13,9 @@ links = {}
 
 
 @app.on_message(
-    filters.group & filters.command(["userbotjoin", "ujoin"]) & ~filters.private
+    filters.group
+    & filters.command(["userbotjoin", f"userbotjoin@{app.username}"])
+    & ~filters.private
 )
 async def join_group(client, message):
     chat_id = message.chat.id
@@ -167,7 +169,7 @@ async def leave_one(client, message):
         print(e)
 
 
-@app.on_message(filters.command(["leaveall"]) & SUDOERS)
+@app.on_message(filters.command(["leaveall", f"leaveall@{app.username}"]) & SUDOERS)
 async def leave_all(client, message):
     if message.from_user.id not in SUDOERS:
         return
@@ -201,6 +203,6 @@ async def leave_all(client, message):
 
 __MODULES__ = "Userbotjoin"
 __HELP__ = """
-/ᴜsᴇʀʙᴏᴛᴊᴏɪɴ: Iɴᴠɪᴛᴇs ᴛʜᴇ ᴜsᴇʀʙᴏᴛ ᴛᴏ ᴛʜᴇ ᴄᴜʀʀᴇɴᴛ ɢʀᴏᴜᴘ.
-/ᴜsᴇʀʙᴏᴛᴇᴀᴠᴇ: Mᴀᴋᴇs ᴛʜᴇ ᴜsᴇʀʙᴏᴛ ᴇᴀᴠᴇ ᴛʜᴇ ᴄᴜʀʀᴇɴᴛ ɢʀᴏᴜᴘ.
-/ᴇᴀᴠᴇᴀ: Mᴀᴋᴇs ᴛʜᴇ ᴜsᴇʀʙᴏᴛ ᴇᴀᴠᴇ ᴀ ɢʀᴏᴜᴘs ᴡʜᴇʀᴇ ɪᴛ ɪs ᴘʀᴇsᴇɴᴛ (ᴀᴄᴄᴇssɪʙᴇ ᴏɴʏ ᴛᴏ SUDOERS)."""
+/userbotjoin: Invites the userbot to the current group.
+/userbotleave: Makes the userbot leave the current group.
+/leaveall: Makes the userbot leave all groups where it is present (accessible only to SUDOERS)."""

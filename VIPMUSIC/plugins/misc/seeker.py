@@ -1,124 +1,16 @@
 import asyncio
-import math
 
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardMarkup
 
 from strings import get_string
 from VIPMUSIC.misc import db
 from VIPMUSIC.utils.database import get_active_chats, get_lang, is_music_playing
-from VIPMUSIC.utils.formatters import seconds_to_min, time_to_seconds
+from VIPMUSIC.utils.formatters import seconds_to_min
+from VIPMUSIC.utils.inline import stream_markup_timerr, telegram_markup_timer
 
 from ..admins.callback import wrong
 
 checker = {}
-
-# ==========================================================================#
-
-
-def stream_markup_timer(_, videoid, chat_id, played, dur):
-    played_sec = time_to_seconds(played)
-    duration_sec = time_to_seconds(dur)
-    percentage = (played_sec / duration_sec) * 100
-    umm = math.floor(percentage)
-    if 0 < umm <= 40:
-        bar = "◉——————————"
-    elif 10 < umm < 20:
-        bar = "—◉—————————"
-    elif 20 < umm < 30:
-        bar = "——◉————————"
-    elif 30 <= umm < 40:
-        bar = "———◉———————"
-    elif 40 <= umm < 50:
-        bar = "————◉——————"
-    elif 50 <= umm < 60:
-        bar = "——————◉————"
-    elif 60 <= umm < 70:
-        bar = "———————◉———"
-    elif 70 <= umm < 90:
-        bar = "—————————◉—"
-    else:
-        bar = "——————————◉"
-
-    buttons = [
-        [
-            InlineKeyboardButton(
-                text=f"{played} •{bar}• {dur}",
-                callback_data="GetTimer",
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text="II ᴘᴀᴜsᴇ",
-                callback_data=f"ADMIN Pause|{chat_id}",
-            ),
-            InlineKeyboardButton(text="▢ sᴛᴏᴘ", callback_data=f"ADMIN Stop|{chat_id}"),
-            InlineKeyboardButton(
-                text="sᴋɪᴘ ‣‣I", callback_data=f"ADMIN Skip|{chat_id}"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="▷ ʀᴇsᴜᴍᴇ", callback_data=f"ADMIN Resume|{chat_id}"
-            ),
-            InlineKeyboardButton(
-                text="ʀᴇᴘʟᴀʏ ↺", callback_data=f"ADMIN Replay|{chat_id}"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="๏ ғᴇᴀᴛᴜʀᴇs ๏",
-                callback_data=f"MainMarkup {videoid}|{chat_id}",
-            ),
-        ],
-    ]
-
-    return buttons
-
-
-def telegram_markup_timer(_, chat_id, played, dur):
-    played_sec = time_to_seconds(played)
-    duration_sec = time_to_seconds(dur)
-    percentage = (played_sec / duration_sec) * 100
-    umm = math.floor(percentage)
-    if 0 < umm <= 40:
-        bar = "◉——————————"
-    elif 10 < umm < 20:
-        bar = "—◉—————————"
-    elif 20 < umm < 30:
-        bar = "——◉————————"
-    elif 30 <= umm < 40:
-        bar = "———◉———————"
-    elif 40 <= umm < 50:
-        bar = "————◉——————"
-    elif 50 <= umm < 60:
-        bar = "——————◉————"
-    elif 60 <= umm < 70:
-        bar = "———————◉———"
-    elif 70 <= umm < 90:
-        bar = "—————————◉—"
-    else:
-        bar = "——————————◉"
-    buttons = [
-        [
-            InlineKeyboardButton(
-                text=f"{played} •{bar}• {dur}",
-                callback_data="GetTimer",
-            )
-        ],
-        [
-            InlineKeyboardButton(text="▷", callback_data=f"ADMIN Resume|{chat_id}"),
-            InlineKeyboardButton(text="II", callback_data=f"ADMIN Pause|{chat_id}"),
-            InlineKeyboardButton(text="‣‣I", callback_data=f"ADMIN Skip|{chat_id}"),
-            InlineKeyboardButton(text="▢", callback_data=f"ADMIN Stop|{chat_id}"),
-        ],
-        [
-            InlineKeyboardButton(text=_["CLOSEMENU_BUTTON"], callback_data="close"),
-        ],
-    ]
-    return buttons
-
-
-# ==========================================================================#
 
 
 async def timer():
@@ -143,7 +35,7 @@ asyncio.create_task(timer())
 
 
 async def markup_timer():
-    while not await asyncio.sleep(90):
+    while not await asyncio.sleep(8):
         active_chats = await get_active_chats()
         for chat_id in active_chats:
             try:
@@ -173,7 +65,7 @@ async def markup_timer():
                     _ = get_string("en")
                 try:
                     buttons = (
-                        stream_markup_timer(
+                        stream_markup_timerr(
                             _,
                             playing[0]["vidid"],
                             chat_id,
